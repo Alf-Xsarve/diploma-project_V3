@@ -76,8 +76,8 @@ export default function FiguresList() {
                 {figure.biography?.substring(0, 130)}...
               </p>
               <div className="flex justify-between text-xs md:text-sm text-gray-500">
-                {figure.birth_year && <span>Род. {figure.birth_year}</span>}
-                {figure.death_year && <span>Умер {figure.death_year}</span>}
+                {figure.birth_year && <span>Дата рождения- {figure.birth_year}</span>}
+                {figure.death_year && <span>Дата смерти- {figure.death_year}</span>}
               </div>
             </div>
           </Link>
