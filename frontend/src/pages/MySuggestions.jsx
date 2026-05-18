@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function MySuggestions() {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      setIsAuthenticated(false);
+      setLoading(false);
+      return;
+    }
+
+    setIsAuthenticated(true);
     fetchMySuggestions();
   }, []);
 
@@ -17,14 +27,46 @@ export default function MySuggestions() {
       setSuggestions(res.data);
     } catch (err) {
       console.error(err);
-      toast.error('Не удалось загрузить ваши предложения');
+
+      if (err.response?.status === 401) {
+        toast.error('Сессия истекла. Пожалуйста, войдите в аккаунт');
+        localStorage.clear();
+        navigate('/login');
+      } else {
+        toast.error('Не удалось загрузить ваши предложения');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-2xl">Загрузка ваших предложений...</div>;
+    return (
+      <div className="text-center py-20 text-2xl">
+        Загрузка ваших предложений...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-20 text-center">
+        <div className="bg-white rounded-3xl shadow-lg p-16">
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            Войдите в аккаунт
+          </h2>
+          <p className="text-gray-600 mb-8">
+            Чтобы просматривать свои предложения, необходимо авторизоваться
+          </p>
+          <Link
+            to="/login"
+            className="bg-indigo-600 text-white px-8 py-4 rounded-2xl text-lg font-medium hover:bg-indigo-700 transition"
+          >
+            Войти в аккаунт
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -33,7 +75,7 @@ export default function MySuggestions() {
         <h1 className="text-4xl font-bold text-gray-900">Мои предложения</h1>
         <Link
           to="/suggestions"
-          className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition"
+          className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition flex items-center gap-2"
         >
           + Предложить новое лицо
         </Link>
@@ -41,8 +83,13 @@ export default function MySuggestions() {
 
       {suggestions.length === 0 ? (
         <div className="bg-white rounded-3xl shadow p-16 text-center">
-          <p className="text-2xl text-gray-400">Вы ещё не отправляли предложений</p>
-          <Link to="/suggestions" className="text-indigo-600 hover:underline mt-4 inline-block">
+          <p className="text-2xl text-gray-400 mb-6">
+            Вы ещё не отправляли предложений
+          </p>
+          <Link
+            to="/suggestions"
+            className="text-indigo-600 hover:underline text-lg inline-block"
+          >
             Предложить первое историческое лицо →
           </Link>
         </div>
@@ -52,18 +99,24 @@ export default function MySuggestions() {
             <div key={suggestion.id} className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{suggestion.full_name}</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {suggestion.full_name}
+                  </h3>
                   <p className="text-gray-600 mt-1">
-                    {suggestion.birth_year && `${suggestion.birth_year}`} 
+                    {suggestion.birth_year && `${suggestion.birth_year}`}
                     {suggestion.death_year && ` — ${suggestion.death_year}`}
                   </p>
                 </div>
 
-                <span className={`px-4 py-2 rounded-full text-sm font-medium ${
-                  suggestion.status === 'approved' ? 'bg-green-100 text-green-700' :
-                  suggestion.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                  'bg-yellow-100 text-yellow-700'
-                }`}>
+                <span
+                  className={`px-4 py-2 rounded-full text-sm font-medium ${
+                    suggestion.status === 'approved'
+                      ? 'bg-green-100 text-green-700'
+                      : suggestion.status === 'rejected'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
                   {suggestion.status === 'approved' && '✅ Одобрено'}
                   {suggestion.status === 'rejected' && '❌ Отклонено'}
                   {suggestion.status === 'pending' && '⏳ На рассмотрении'}
