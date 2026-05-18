@@ -33,14 +33,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class SuggestionViewSet(viewsets.ModelViewSet):
-    queryset = Suggestion.objects.all()
     serializer_class = SuggestionSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]   # Обязательная авторизация
+
+    def get_queryset(self):
+        """Только предложения текущего авторизованного пользователя"""
+        return Suggestion.objects.filter(proposed_by=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(proposed_by=self.request.user)
-
-    def get_queryset(self):
-        if self.request.user.is_staff:
-            return self.queryset
-        return self.queryset.filter(proposed_by=self.request.user)
