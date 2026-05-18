@@ -79,8 +79,8 @@ export default function FigureDetail() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">{figure.full_name}</h1>
           
           <div className="flex gap-6 text-gray-600 mb-8 text-lg">
-            {figure.birth_year && <span>Родился: <strong>{figure.birth_year}</strong></span>}
-            {figure.death_year && <span>Умер: <strong>{figure.death_year}</strong></span>}
+            {figure.birth_year && <span>Дата рождения: <strong>{figure.birth_year}</strong></span>}
+            {figure.death_year && <span>Дата смерти: <strong>{figure.death_year}</strong></span>}
             {figure.birth_place && <span>Место рождения: <strong>{figure.birth_place}</strong></span>}
           </div>
 
